@@ -1,0 +1,16 @@
+{
+  "name": "suzuya",
+  "version": "0.1.1",
+  "description": "A frontend runtime plugin loader using cordis",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
+  "repository": "https://github.com/suzuyajs/suzuya",
+  "author": "TimeBather <opensource@timebather.cn>",
+  "license": "MIT",
+  "files": [
+    "lib"
+  ],
+  "dependencies": {
+    "cordis": "^1.1.1"
+  }
+}
