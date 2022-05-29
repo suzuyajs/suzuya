@@ -1,8 +1,15 @@
-import {App as CordisApp,Plugin,Context as CordisContext} from 'cordis'
+import {App as CordisApp, Plugin, Context as CordisContext, Service as CordisService} from 'cordis'
+import * as cordis from 'cordis'
 
 import ServiceOptions = CordisContext.ServiceOptions;
 
 CordisContext.service('service')
+
+declare global {
+    interface Window {
+        __suzuya_cordis__:typeof cordis
+    }
+}
 
 declare module 'cordis'{
     interface Context{
@@ -20,7 +27,7 @@ export class App{
         }
         this.plugins = new Map<string, Plugin>()
     }
-    async addPlugin(id,path){
+        async addPlugin(id,path){
         const plugin = await import(/* @vite-ignore */path);
         this.plugins.set(id,plugin)
         this.app.plugin(plugin)
@@ -36,4 +43,9 @@ export class App{
     }
 }
 export * from 'cordis'
-export {Context} from 'cordis'
+if(window && !window.__suzuya_cordis__)
+    window.__suzuya_cordis__ = cordis
+const LService : typeof cordis.Service =  window.__suzuya_cordis__.Service ?? CordisService
+export class Service extends LService{}
+const LContext: typeof cordis.Context =  window.__suzuya_cordis__.Context ?? CordisContext
+export class Context extends LContext{}
