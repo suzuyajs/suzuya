@@ -1,51 +1,35 @@
-import {App as CordisApp, Plugin, Context as CordisContext, Service as CordisService} from 'cordis'
-import * as cordis from 'cordis'
-
-import ServiceOptions = CordisContext.ServiceOptions;
-
-CordisContext.service('service')
-
-declare global {
-    interface Window {
-        __suzuya_cordis__:typeof cordis
-    }
-}
-
-declare module 'cordis'{
-    interface Context{
-        service : (service:keyof any,options?:ServiceOptions)=>void
-    }
-}
+import {App as CordisApp, Plugin, Context} from 'cordis'
 
 export class App{
     app : CordisApp
     plugins : Map<string,Plugin>
-    constructor() {
-        this.app=new CordisApp
-        this.app.service = (service:keyof any,options?:ServiceOptions)=>{
-            CordisContext.service(service,options)
-        }
+    constructor(cordis?:typeof CordisApp) {
+        this.app=new (cordis??CordisApp)
         this.plugins = new Map<string, Plugin>()
     }
-        async addPlugin(id,path){
+
+    async addPlugin(id:string,path:string){
+        return await this.import(id,path)
+    }
+    async import(id:string,path:string){
         const plugin = await import(/* @vite-ignore */path);
+        this.plugins.set(id,plugin)
+        return this.app.plugin(plugin)
+    }
+    delete(id){
+        this.plugins.has(id)&&(this.app.dispose(this.plugins.get(id)) && this.plugins.delete(id))
+    }
+
+    use(id:string,plugin:any){
         this.plugins.set(id,plugin)
         this.app.plugin(plugin)
     }
-    deletePlugin(id){
-        this.plugins.has(id)&&(this.app.dispose(this.plugins.get(id)) && this.plugins.delete(id))
+
+    async start(){
+        await this.app.start()
     }
-    start(){
-        this.app.start()
-    }
-    stop(){
-        this.app.stop()
+    async stop(){
+        await this.app.stop()
     }
 }
-export * from 'cordis'
-if(window && !window.__suzuya_cordis__)
-    window.__suzuya_cordis__ = cordis
-const LService : typeof cordis.Service =  window.__suzuya_cordis__.Service ?? CordisService
-export class Service extends LService{}
-const LContext: typeof cordis.Context =  window.__suzuya_cordis__.Context ?? CordisContext
-export class Context extends LContext{}
+export type {Context as FrontendContext} from 'cordis'
